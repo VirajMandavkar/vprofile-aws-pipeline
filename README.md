@@ -7,9 +7,9 @@ A production-style CI/CD pipeline deploying a Java web application to **AWS Elas
 ## Architecture Overview
 
 ``` 
-                                                               AWS RDS (MySQL)
-                                                                     |
-Bitbucket (Source)   ──►   AWS CodeBuild (Build)   ──►   AWS Elastic Beanstalk (Deploy)
+                                                              AWS RDS (MySQL)
+                                                                    |
+Bitbucket (Source) ──► AWS CodeBuild (Build) ──► AWS Elastic Beanstalk (Deploy)
          └──────────────── AWS CodePipeline (Orchestration) ──────────────────┘                      
 ```
 
@@ -67,15 +67,15 @@ Bitbucket (Source)   ──►   AWS CodeBuild (Build)   ──►   AWS Elastic
 
 ### 2. RDS (MySQL)
 
-|    Setting   |     Value     |
-
-| Engine       |  MySQL 8.4.7  |
-| Template     |    Sandbox    |
-| Instance     |   db.t3.micro |
-| DB Name      |  `accounts`   |
-| Username     |    `admin`    |
-| VPC          |    Default    |
-| Port         |     3306      |
+| Setting | Value |
+|---|---|
+| Engine | MySQL 8.4.7 |
+| Template | Sandbox |
+| Instance | db.t3.micro |
+| DB Name | `accounts` |
+| Username | `admin` |
+| VPC | Default |
+| Port | 3306 |
 
 **Security Group:** A new security group was created for the RDS instance allowing inbound traffic on port `3306` from the Elastic Beanstalk instances' security group.
 
@@ -178,12 +178,12 @@ artifacts:
 
 ### 6. CodePipeline
 
-|  Stage  |          Provider           |               Notes                       |
-
-| Source  | Bitbucket (`aws-ci` branch) | Triggers automatically on push            |
-| Build   |        AWS CodeBuild        | Uses the project configured above         |
-| Test    |     *(not configured)*      | A separate CodeBuild project can be added |
-| Deploy  |    AWS Elastic Beanstalk    | Targets the `vprofile` application        |
+| Stage | Provider | Notes |
+|---|---|---|
+| Source | Bitbucket (`aws-ci` branch) | Triggers automatically on push |
+| Build | AWS CodeBuild | Uses the project configured above |
+| Test | *(not configured)* | A separate CodeBuild project can be added |
+| Deploy | AWS Elastic Beanstalk | Targets the `vprofile` application |
 
 > **IAM Note:** The auto-created CodePipeline service role may not include Elastic Beanstalk permissions. Add `AWSElasticBeanstalkFullAccess` (or a scoped equivalent) to the role if deployment fails.
 
@@ -191,12 +191,12 @@ artifacts:
 
 ## Known Issues & Fixes
 
-|               Issue                 |                 Root Cause                     |                           Fix                          |
-
-| `sed` build failure                 | Missing closing `/` in substitution expression | Ensure `'s/old/new/'` syntax                           |
-| MariaDB SSL error (11.4)            | Stricter default SSL verification              | Use `--ssl=0` for testing or provide `--ssl-ca` bundle |
-| Bitbucket push rejected (read-only) | Stale SSH session / cached remote config       | Re-run `ssh -T`, remove and re-add remote              |
-| Session lost between requests       | No session token in vProfile app               | Enable Session Stickiness on Beanstalk load balancer   |
+| Issue | Root Cause | Fix |
+|---|---|---|
+| `sed` build failure | Missing closing `/` in substitution expression | Ensure `'s/old/new/'` syntax |
+| MariaDB SSL error (11.4) | Stricter default SSL verification | Use `--ssl=0` for testing or provide `--ssl-ca` bundle |
+| Bitbucket push rejected (read-only) | Stale SSH session / cached remote config | Re-run `ssh -T`, remove and re-add remote |
+| Session lost between requests | No session token in vProfile app | Enable Session Stickiness on Beanstalk load balancer |
 
 ---
 
